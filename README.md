@@ -1,8 +1,8 @@
-# Fine-grained-Multimodal-DeepFake-Classification
+# Dynamic Difference Learning With Spatio–Temporal Correlation for Deepfake Video Detection
 
 ## Introduction
 
-This is the python implementation about **Fine-grained Multimodal DeepFake Classification via Heterogeneous Graphs**. 
+This is the python implementation about **Dynamic Difference Learning With Spatio–Temporal Correlation for Deepfake Video Detection**. 
 
 ## Environment
 
