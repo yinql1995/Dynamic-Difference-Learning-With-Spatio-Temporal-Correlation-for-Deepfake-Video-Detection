@@ -6,7 +6,7 @@ from torch.nn import init
 import torch
 from torchsummary import summary
 
-num_frames = 4
+num_frames = 8
 
 
 class SeparableConv2d(nn.Module):
@@ -318,14 +318,14 @@ class spatial_self_attention(nn.Module):
         return x
 
 
-class video_model(nn.Module):
+class DDLmodel(nn.Module):
 
     def __init__(self, num_classes=2):
         """ Constructor
         Args:
             num_classes: number of classes
         """
-        super(video_model, self).__init__()
+        super(DDLmodel, self).__init__()
 
         self.num_classes = num_classes
 
@@ -339,16 +339,16 @@ class video_model(nn.Module):
         self.bn2 = nn.BatchNorm2d(64)
 
 
-        self.block1 = Block_1(64, 64, 2, 2, start_with_relu=False, grow_first=True, relu=False, sim=True, hv=True)
+        self.block1 = Block_1(64, 128, 2, 2, start_with_relu=False, grow_first=True, relu=False, sim=True, hv=True)
 
-        self.block2 = Block_1(64, 128, 2, 2, start_with_relu=False, grow_first=True, sim=True, hv=True)
+        self.block2 = Block_1(128, 256, 2, 2, start_with_relu=False, grow_first=True, sim=True, hv=True)
 
-        self.block3 = Block_1(128, 128, 2, 2, start_with_relu=False, grow_first=True, sim=True, hv=True)
+        self.block3 = Block_1(256, 512, 2, 2, start_with_relu=False, grow_first=True, sim=True, hv=True)
 
-        # self.block4 = Block_1(512, 512, 3, 1, start_with_relu=False, grow_first=True, sim=True, hv=True)
-        # self.block5 = Block_1(512, 512, 3, 1, start_with_relu=False, grow_first=True, sim=True, hv=True)
-        # self.block6 = Block_1(512, 512, 3, 1, start_with_relu=False, grow_first=True, sim=True, hv=True)
-        # self.block7 = Block_1(512, 512, 3, 2, start_with_relu=False, grow_first=True, sim=True, hv=True)
+        self.block4 = Block_1(512, 512, 3, 1, start_with_relu=False, grow_first=True, sim=True, hv=True)
+        self.block5 = Block_1(512, 512, 3, 1, start_with_relu=False, grow_first=True, sim=True, hv=True)
+        self.block6 = Block_1(512, 512, 3, 1, start_with_relu=False, grow_first=True, sim=True, hv=True)
+        self.block7 = Block_1(512, 512, 3, 2, start_with_relu=False, grow_first=True, sim=True, hv=True)
 
         # self.block8 = Block_1(728, 728, 3, 1, start_with_relu=False, grow_first=True)
         # self.block9 = Block_1(728, 728, 3, 1, start_with_relu=False, grow_first=True)
@@ -357,16 +357,16 @@ class video_model(nn.Module):
 
         # self.block12 = Block(728, 1024, 2, 2, start_with_relu=True, grow_first=False)
 
-        self.conv3 = SeparableConv2d(128, 128, 3, 1, 1)
-        self.bn3 = nn.BatchNorm2d(128)
+       self.conv3 = SeparableConv2d(512, 512, 3, 1, 1)
+        self.bn3 = nn.BatchNorm2d(512)
 
         # do relu here
-        self.conv4 = SeparableConv2d(128, 128, 3, 1, 1)
-        self.bn4 = nn.BatchNorm2d(128)
+        self.conv4 = SeparableConv2d(512, 256, 3, 1, 1)
+        self.bn4 = nn.BatchNorm2d(256)
 
-        self.fea_fusion = FeatureFusionModule(128*num_frames, 512)
+        self.fea_fusion = FeatureFusionModule(256*num_frames, 1024)
 
-        # self.fc = nn.Linear(512, num_classes)
+        self.fc = nn.Linear(1024, num_classes)
 
         # ------- init weights --------
         for m in self.modules():
@@ -396,10 +396,10 @@ class video_model(nn.Module):
         x = self.block2(x)
         x = self.block3(x)
 
-        # x = self.block4(x)
-        # x = self.block5(x)
-        # x = self.block6(x)
-        # x = self.block7(x)
+        x = self.block4(x)
+        x = self.block5(x)
+        x = self.block6(x)
+        x = self.block7(x)
 
         # x = self.block8(x)
         # x = self.block9(x)
@@ -428,7 +428,7 @@ class video_model(nn.Module):
         fea = x.view(x.size(0), -1)
         # print(x.size())
 
-        # x = self.fc(fea)
+        x = self.fc(fea)
 
-        return fea
+        return x
 
